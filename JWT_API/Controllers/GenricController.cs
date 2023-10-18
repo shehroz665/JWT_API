@@ -19,7 +19,7 @@ namespace JWT_API.Controllers
             _db=db;
             _logging=logging;
         }
-        [HttpGet("/dropdown")]
+        [HttpGet("dropdown")]
         public ActionResult Get()
         {
             var authors=_db.Author.Where(x=> x.Status==1).ToList();
