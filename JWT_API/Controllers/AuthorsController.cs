@@ -52,7 +52,7 @@ namespace JWT_API.Controllers
         public ActionResult<Authors> GetAuthors()
         {
             var response = " ";
-            var authorData = _db.Author.Where(x=>x.Status==1).ToList();
+            var authorData = _db.Author.Where(x=>x.Status==1 | x.Status==0).ToList();
             response = _logging.Success("Authors Fetched Successfully", 200, authorData);
             return Content(response, "application/json");
         }
