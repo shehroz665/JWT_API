@@ -4,7 +4,7 @@ using JWT_API.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace JWT_API.Controllers
 {
@@ -22,6 +22,7 @@ namespace JWT_API.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<BookDto>> getBooks()
         {
+            //using raw query
             var books = _db.Bookdto
                 .FromSqlRaw("SELECT Book.BookId, Book.Title, Book.BookAuthId, Book.BookCatId, Book.Isbn, Book.ActualQuantity, Book.AvailableQuantity, Book.Price, Book.Status, " +
                             "Category.CatId, Category.CatName, " +
@@ -29,9 +30,10 @@ namespace JWT_API.Controllers
                             "FROM Book " +
                             "JOIN Category ON Book.BookCatId = Category.CatId " +
                             "JOIN Author ON Book.BookAuthId = Author.AuthId " +
-            "WHERE Book.Status IN (0, 1)")
-            .ToList();
-
+                            "WHERE Book.Status IN (0, 1)")
+                            .ToList();
+            //using stored procedure
+            //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
             var response = _logging.Success("Books Fetched Successfully", 200, books);
             return Content(response, "application/json");
         }
