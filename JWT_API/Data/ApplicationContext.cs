@@ -19,6 +19,8 @@ namespace JWT_API.Data
 
         public DbSet<Books> Book { get; set; }
 
+        public DbSet<BookDto> Bookdto { get; set; }
+
         public DbSet<Transactions> Transaction { get; set; }
 
     }
