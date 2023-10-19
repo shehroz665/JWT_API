@@ -12,9 +12,9 @@ namespace JWT_API.Models
         public int BookCatId { get; set; }
         public int BookAuthId { get; set; }
         public string Isbn { get; set; }
-        public int ActualQuantity { get; init; }
-        public int AvailableQuantity { get; init; }
-        public int Price { get; init; }
+        public int ActualQuantity { get; set; }
+        public int AvailableQuantity { get; set; }
+        public int Price { get; set; }
         public int Status { get; set; }
         public int CatId { get; set; }
         public string CatName { get; set; }

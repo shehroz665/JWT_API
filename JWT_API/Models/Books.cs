@@ -24,13 +24,13 @@ namespace JWT_API.Models
         public string  Isbn { get; set; }
 
         [Required]
-        public int ActualQuantity { get; init; }
+        public int ActualQuantity { get; set; }
 
         [Required]
-        public int AvailableQuantity { get; init; }
+        public int AvailableQuantity { get; set; }
 
         [Required]
-        public int Price { get; init; }
+        public int Price { get; set; }
 
         [Required]
         public int Status { get; set; }

@@ -54,20 +54,78 @@ namespace JWT_API.Controllers
                 response = _logging.Failure("Book Already exists", 400, null);
                 return Content(response, "application/json");
             }
-            Books books = new Books()
-            {
-                  Title=booksObj.Title,
-                  BookCatId=booksObj.BookCatId,
-                  BookAuthId=booksObj.BookCatId,
-                  Isbn=booksObj.Isbn,
-                  ActualQuantity=booksObj.ActualQuantity,
-                  AvailableQuantity=booksObj.AvailableQuantity,
-                  Price=booksObj.Price,
-                  Status=1,
-            };
-            _db.Book.Add(books);
+
+            _db.Book.Add(booksObj);
             _db.SaveChanges();
-            response = _logging.Success("Book Created Successfully", 201, books);
+            response = _logging.Success("Book Created Successfully", 201, booksObj);
+            return Content(response, "application/json");
+
+        }
+        [HttpGet("{id}")]
+        public ActionResult<Books> getBook(int id)
+        {
+            var response = " ";
+            if (id==0)
+            {
+                response = _logging.Failure("Bad Request", 400, null);
+                return Content(response, "application/json");
+            }
+            var bookData = _db.Book.FirstOrDefault(x => x.BookId==id);
+            if (bookData!=null)
+            {
+                response = _logging.Success("Book Fetched Successfully", 200, bookData);
+                return Content(response, "application/json");
+            }
+            response = _logging.Failure("Not found", 404, null);
+            return Content(response, "application/json");
+
+        }
+        [HttpPut("delete/{id}")]
+        public ActionResult<Books> DeleteBook(int id)
+        {
+            var response = " ";
+            if (id==0)
+            {
+                response = _logging.Failure("Bad Request", 400, null);
+                return Content(response, "application/json");
+            }
+            var bookData = _db.Book.FirstOrDefault(x => x.BookId==id);
+            if (bookData!=null)
+            {
+                bookData.Status=2;
+                _db.Book.Update(bookData);
+                _db.SaveChanges();
+                response = _logging.Success("Book Deleted Successfully", 200, bookData);
+                return Content(response, "application/json");
+            }
+            response = _logging.Failure("Not found", 404, null);
+            return Content(response, "application/json");
+        }
+        [HttpPut("update/{id}")]
+        public ActionResult<Books> UpdateBook(int id, [FromBody] Books booksObj)
+        {
+            var response = " ";
+            if (id==0)
+            {
+                response = _logging.Failure("Bad Request", 400, null);
+                return Content(response, "application/json");
+            }
+            var bookData = _db.Book.FirstOrDefault(x => x.BookId==id);
+            if (bookData==null)
+            {
+                response = _logging.Failure("Not found", 404, null);
+                return Content(response, "application/json");
+            }
+            bookData.Title = booksObj.Title;
+            bookData.BookCatId = booksObj.BookCatId;
+            bookData.BookAuthId = booksObj.BookAuthId;
+            bookData.ActualQuantity = booksObj.ActualQuantity;
+            bookData.AvailableQuantity = booksObj.AvailableQuantity;
+            bookData.Price = booksObj.Price;
+            bookData.Isbn = booksObj.Isbn;
+            _db.Book.Update(bookData);
+            _db.SaveChanges();
+            response = _logging.Success("Book Updated Successfully", 200, booksObj);
             return Content(response, "application/json");
 
         }
