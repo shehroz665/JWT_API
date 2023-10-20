@@ -1,6 +1,7 @@
 ﻿using JWT_API.Data;
 using JWT_API.Logging;
 using JWT_API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpPost]
+        [Authorize]
         public ActionResult<Categories> CreateCategory([FromBody] Categories categoriesObj)
         {
             var response = " ";
@@ -45,15 +47,17 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult<Categories> GetCategories()
         {
             var response = " ";
-            var categoryData = _db.Category.Where(x => x.Status==1).ToList();
+            var categoryData = _db.Category.Where(x => x.Status==1 |x.Status==0).ToList();
             response = _logging.Success("Categories Fetched Successfully", 200, categoryData);
             return Content(response, "application/json");
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<Categories> GetCategory(int id)
         {
             var response = " ";
@@ -72,6 +76,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("delete/{id}")]
+        [Authorize]
         public ActionResult<Categories> DeleteCategory(int id)
         {
             var response = " ";
@@ -93,6 +98,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
+        [Authorize]
         public ActionResult<Categories> UpdateCategory(int id, [FromBody] Categories categoryObj)
         {
             var response = " ";
@@ -115,6 +121,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("changeStatus/{id}")]
+        [Authorize]
         public ActionResult<Categories> ChangeStatusCategory(int id)
         {
             var response = " ";

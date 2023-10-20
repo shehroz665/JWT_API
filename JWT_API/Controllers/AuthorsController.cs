@@ -22,6 +22,7 @@ namespace JWT_API.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public ActionResult<Authors> CreateAuthor([FromBody] Authors authorsObj)
         {
             var response = " ";
@@ -49,6 +50,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ActionResult<Authors> GetAuthors()
         {
             var response = " ";
@@ -58,6 +60,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<Authors> GetAuthor(int id)
         {
             var response = " ";
@@ -76,6 +79,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("delete/{id}")]
+        [Authorize]
         public ActionResult<Authors> DeleteAuthor(int id)
         {
             var response = " ";
@@ -97,6 +101,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
+        [Authorize]
         public ActionResult<Authors> UpdateAuthor(int id, [FromBody] Authors authorsObj)
         {
             var response = " ";
@@ -119,6 +124,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("changeStatus/{id}")]
+        [Authorize]
         public ActionResult<Authors> ChangeStatusAuthor(int id)
         {
             var response = " ";

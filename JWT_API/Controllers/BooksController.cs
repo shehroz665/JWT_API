@@ -1,6 +1,7 @@
 ﻿using JWT_API.Data;
 using JWT_API.Logging;
 using JWT_API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpGet]
+        [Authorize]
         public ActionResult<IEnumerable<BookDto>> getBooks()
         {
             //using raw query
@@ -40,6 +42,7 @@ namespace JWT_API.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public ActionResult<Books> createBook([FromBody] Books booksObj)
         {
             var response = "";
@@ -62,6 +65,7 @@ namespace JWT_API.Controllers
 
         }
         [HttpGet("{id}")]
+        [Authorize]
         public ActionResult<Books> getBook(int id)
         {
             var response = " ";
@@ -81,6 +85,7 @@ namespace JWT_API.Controllers
 
         }
         [HttpPut("delete/{id}")]
+        [Authorize]
         public ActionResult<Books> DeleteBook(int id)
         {
             var response = " ";
@@ -102,6 +107,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
+        [Authorize]
         public ActionResult<Books> UpdateBook(int id, [FromBody] Books booksObj)
         {
             var response = " ";
@@ -128,6 +134,35 @@ namespace JWT_API.Controllers
             response = _logging.Success("Book Updated Successfully", 200, booksObj);
             return Content(response, "application/json");
 
+        }
+        [HttpPut("changeStatus/{id}")]
+        [Authorize]
+        public ActionResult<Authors> ChangeStatus(int id)
+        {
+            var response = " ";
+            if (id==0)
+            {
+                response = _logging.Failure("Bad Request", 400, null);
+                return Content(response, "application/json");
+            }
+            var data = _db.Book.FirstOrDefault(x => x.BookId==id);
+            if (data!=null)
+            {
+                if (data.Status==0)
+                {
+                    data.Status=1;
+                }
+                else
+                {
+                    data.Status=0;
+                }
+                _db.Book.Update(data);
+                _db.SaveChanges();
+                response = _logging.Success("Book Status Updated Successfully", 200, data);
+                return Content(response, "application/json");
+            }
+            response = _logging.Failure("Not found", 404, null);
+            return Content(response, "application/json");
         }
 
     }

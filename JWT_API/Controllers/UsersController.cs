@@ -66,7 +66,7 @@ namespace JWT_API.Controllers
             }
             else
             {
-                var response = _logging.Failure("Login Failure", 404,null);
+                var response = _logging.Failure("Login Failure: Please Enter right cridentials", 404,null);
                 return Content(response, "application/json");
             }
         }
