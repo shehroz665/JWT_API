@@ -18,5 +18,9 @@ namespace JWT_API.Models
         public string UserMessage { get; set; }
 
         public string UserToken { get; set; }
+
+        public int? RoleId { get; set; }
+
+        public string? RoleName { get; set; }
     }
 }

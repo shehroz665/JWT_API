@@ -48,6 +48,7 @@ namespace JWT_API.Controllers
 
         [HttpGet]
         [Authorize]
+        //   [Authorize(Policy = "Student")]
         public ActionResult<Categories> GetCategories()
         {
             var response = " ";

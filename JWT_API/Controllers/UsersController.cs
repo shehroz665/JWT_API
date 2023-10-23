@@ -47,7 +47,8 @@ namespace JWT_API.Controllers
                 {
                     new Claim(JwtRegisteredClaimNames.Sub,_configuration["Jwt:Subject"]),
                     new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat,DateTime.UtcNow.ToString())
+                    new Claim(JwtRegisteredClaimNames.Iat,DateTime.UtcNow.ToString()),
+                    new Claim("RoleId",user.RoleId.ToString()),
                 };
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
                 var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -61,6 +62,8 @@ namespace JWT_API.Controllers
                     );
                 userObj.UserMessage="Login Successful";
                 userObj.UserToken=new JwtSecurityTokenHandler().WriteToken(token);
+                userObj.RoleId=user.RoleId;
+                userObj.RoleName=user.RoleName;
                 var response = _logging.Success("Login Successful", 200, userObj);
                 return Content(response,"application/json");
             }
@@ -93,7 +96,9 @@ namespace JWT_API.Controllers
                 Email=userObj.Email,
                 Password=userObj.Password,
                 UserMessage=" ",
-                UserToken=" "
+                UserToken=" ",
+                RoleId=userObj.RoleId,
+                RoleName=userObj.RoleName,
             };  
             _db.User.Add(model);
             _db.SaveChanges();

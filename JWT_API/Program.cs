@@ -14,6 +14,13 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBuser"));
 });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.RequireClaim("RoleId", "1"));
+    options.AddPolicy("Student", policy => policy.RequireClaim("RoleId", "2"));
+    options.AddPolicy("Teacher", policy => policy.RequireClaim("RoleId", "3"));
+
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
