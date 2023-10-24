@@ -50,7 +50,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Admin")]
+        [Authorize]
         public ActionResult<Authors> GetAuthors()
         {
             var response = " ";

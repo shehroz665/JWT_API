@@ -16,9 +16,23 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 });
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Admin", policy => policy.RequireClaim("RoleId", "1"));
-    options.AddPolicy("Student", policy => policy.RequireClaim("RoleId", "2"));
-    options.AddPolicy("Teacher", policy => policy.RequireClaim("RoleId", "3"));
+    options.AddPolicy("Admin", policy => {
+    policy.RequireClaim("RoleId", "1");
+    policy.RequireClaim("UserId");
+    policy.RequireClaim("UserEmail");
+    });
+    options.AddPolicy("Student", policy =>
+    {
+        policy.RequireClaim("RoleId", "2");
+        policy.RequireClaim("UserId");
+        policy.RequireClaim("UserEmail");
+    });
+    options.AddPolicy("Teacher", policy =>
+    {
+        policy.RequireClaim("RoleId", "3");
+        policy.RequireClaim("UserId");
+        policy.RequireClaim("UserEmail");
+    });
 
 });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

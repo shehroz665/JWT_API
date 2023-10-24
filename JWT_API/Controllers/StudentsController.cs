@@ -41,6 +41,7 @@ namespace JWT_API.Controllers
                 Phone = Obj.Phone,
                 Email = Obj.Email,
                 Address = Obj.Address,
+                UserId = Obj.UserId,
             };
             _db.Student.Add(student);
             _db.SaveChanges();
@@ -54,6 +55,25 @@ namespace JWT_API.Controllers
             
             var data = _db.Student.ToList();
             var response = _logging.Success("Students Fetched Successfully", 200, data);
+            return Content(response, "application/json");
+        }
+
+        [HttpGet("edit/{id}")]
+        public ActionResult<Students> edit(int id)
+        {
+            var response = " ";
+            if (id==0)
+            {
+                response = _logging.Failure("Bad Request", 400, null);
+                return Content(response, "application/json");
+            }
+            var data = _db.Student.FirstOrDefault(x => x.UserId==id);
+            if (data!=null)
+            {
+                response = _logging.Success("Student Fetched Successfully", 200, data);
+                return Content(response, "application/json");
+            }
+            response = _logging.Failure("Not found", 404, null);
             return Content(response, "application/json");
         }
 
@@ -104,7 +124,7 @@ namespace JWT_API.Controllers
                 response = _logging.Failure("Bad Request", 400, null);
                 return Content(response, "application/json");
             }
-            var data = _db.Student.FirstOrDefault(x => x.StuId==id);
+            var data = _db.Student.FirstOrDefault(x => x.UserId==id);
             if (data!=null)
             {
                 data.RollNumber=Obj.RollNumber;

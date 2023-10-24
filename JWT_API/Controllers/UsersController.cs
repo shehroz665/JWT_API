@@ -49,6 +49,8 @@ namespace JWT_API.Controllers
                     new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()),
                     new Claim(JwtRegisteredClaimNames.Iat,DateTime.UtcNow.ToString()),
                     new Claim("RoleId",user.RoleId.ToString()),
+                    new Claim("UserId",user.Id.ToString()),
+                    new Claim("UserEmail",user.Email.ToString()),
                 };
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
                 var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

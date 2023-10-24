@@ -28,5 +28,7 @@ namespace JWT_API.Models
         public string Phone { get; set; }
 
         public string? Address { get; set; }
+
+        public int? UserId { get; set; }
     }
 }
