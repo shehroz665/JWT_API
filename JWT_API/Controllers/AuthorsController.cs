@@ -22,7 +22,7 @@ namespace JWT_API.Controllers
 
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> CreateAuthor([FromBody] Authors authorsObj)
         {
             var response = " ";
@@ -50,7 +50,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> GetAuthors()
         {
             var response = " ";
@@ -60,7 +60,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> GetAuthor(int id)
         {
             var response = " ";
@@ -79,7 +79,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("delete/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> DeleteAuthor(int id)
         {
             var response = " ";
@@ -101,7 +101,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> UpdateAuthor(int id, [FromBody] Authors authorsObj)
         {
             var response = " ";
@@ -124,7 +124,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("changeStatus/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> ChangeStatusAuthor(int id)
         {
             var response = " ";

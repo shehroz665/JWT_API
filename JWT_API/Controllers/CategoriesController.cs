@@ -19,7 +19,7 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> CreateCategory([FromBody] Categories categoriesObj)
         {
             var response = " ";
@@ -47,8 +47,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        //   [Authorize(Policy = "Student")]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> GetCategories()
         {
             var response = " ";
@@ -58,7 +57,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> GetCategory(int id)
         {
             var response = " ";
@@ -77,7 +76,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("delete/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> DeleteCategory(int id)
         {
             var response = " ";
@@ -99,7 +98,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> UpdateCategory(int id, [FromBody] Categories categoryObj)
         {
             var response = " ";
@@ -122,7 +121,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("changeStatus/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Categories> ChangeStatusCategory(int id)
         {
             var response = " ";

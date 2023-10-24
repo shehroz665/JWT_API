@@ -40,9 +40,8 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
 
-
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Books> createBook([FromBody] Books booksObj)
         {
             var response = "";
@@ -85,7 +84,7 @@ namespace JWT_API.Controllers
 
         }
         [HttpPut("delete/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Books> DeleteBook(int id)
         {
             var response = " ";
@@ -107,7 +106,7 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpPut("update/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Books> UpdateBook(int id, [FromBody] Books booksObj)
         {
             var response = " ";
@@ -136,7 +135,7 @@ namespace JWT_API.Controllers
 
         }
         [HttpPut("changeStatus/{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Authors> ChangeStatus(int id)
         {
             var response = " ";
