@@ -58,41 +58,60 @@ namespace JWT_API.Controllers
         }
         [HttpGet]
         [Authorize]
-        public ActionResult<TransactionsDto> GetAll()
+        public ActionResult<TransactionsDto> GetAll([FromQuery(Name = "searchTerm")] string searchTerm = "")
         {
-
-            var data = _db.TransactionDto.FromSqlRaw("SELECT [Book].Title, [User].Email, [Transaction].TransBookId, [Transaction].TransID, [Transaction].TransStuId, [Transaction].BorrowedDate, [Transaction].DueDate, [Transaction].ReturnedDate, " +
-                "[Transaction].Status, [Transaction].UserId " +
-                "FROM [Book] " +
-                "INNER JOIN [Transaction] " +
-                "ON [Book].BookId = [Transaction].TransBookId " +
-                "INNER JOIN [User] " +
-                "ON [Transaction].UserId = [User].Id  "
-                ).ToList();
+           
+            var sqlQuery = "SELECT [Book].Title, [User].Email, [Transaction].TransBookId, [Transaction].TransID, [Transaction].TransStuId, [Transaction].BorrowedDate, [Transaction].DueDate, [Transaction].ReturnedDate, " +
+                    "[Transaction].Status, [Transaction].UserId " +
+                    "FROM [Book] " +
+                    "INNER JOIN [Transaction] " +
+                    "ON [Book].BookId = [Transaction].TransBookId " +
+                    "INNER JOIN [User] " +
+                    "ON [Transaction].UserId = [User].Id";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm";
+                var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
+                var datas = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam).ToList();
+                var responses = _logging.Success("Transaction Fetched Successfully", 200, datas);
+                return Content(responses, "application/json");
+            }
+             var data= _db.TransactionDto.FromSqlRaw(sqlQuery).ToList();
             var response = _logging.Success("Transaction Fetched Successfully", 200, data);
             return Content(response, "application/json");
         }
         [HttpGet("{id}")]
         [Authorize]
 
-        public ActionResult<Transactions> GetById(int id)
+        public ActionResult<Transactions> GetById(int id, [FromQuery] string searchTerm="")
         {
             //this api is for student,id=UserId
             var response = " ";
+            var searchQuery = "%" + searchTerm + "%";
+            var paramters = new List<SqlParameter>
+            {
+                    new SqlParameter("@UserId",id)
+            };
             if (id==0)
             {
                 response = _logging.Failure("Bad Request", 400, null);
                 return Content(response, "application/json");
             }
-            var data = _db.TransactionDto.FromSqlRaw("SELECT [Book].Title, [User].Email, [Transaction].TransBookId, [Transaction].TransID, [Transaction].TransStuId, [Transaction].BorrowedDate, [Transaction].DueDate, [Transaction].ReturnedDate, " +
+            var sqlQuery = "SELECT [Book].Title, [User].Email, [Transaction].TransBookId, [Transaction].TransID, [Transaction].TransStuId, [Transaction].BorrowedDate, [Transaction].DueDate, [Transaction].ReturnedDate, " +
                                                   "[Transaction].Status, [Transaction].UserId " +
                                                   "FROM [Book] " +
                                                   "INNER JOIN [Transaction] " +
                                                   "ON [Book].BookId = [Transaction].TransBookId "+
                                                   "INNER JOIN [User] " +
-                                                  "ON [Transaction].UserId = [User].Id  "+
-                                                  "WHERE [Transaction].UserId = @UserId", new SqlParameter("@UserId", id)
-                                                  ).ToList();
+                                                  "ON [Transaction].UserId = [User].Id "+
+                                                  "WHERE [Transaction].UserId= @UserId ";
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                sqlQuery+=" AND ([User].Email LIKE @SearchTerm OR [Book].Title LIKE @SearchTerm) ";
+                paramters.Add(new SqlParameter("@SearchTerm", searchQuery));
+            }  
+            var data = _db.TransactionDto.FromSqlRaw(sqlQuery,paramters.ToArray()).ToList();
             if (data!=null)
             {
                 response = _logging.Success("Student Transaction Fetched Successfully", 200, data);
