@@ -45,7 +45,7 @@ namespace JWT_API.Controllers
             };
             _db.Student.Add(student);
             _db.SaveChanges();
-            response = _logging.Success("Student Created Successfully", 201, student);
+            response = _logging.Success("Profile Created Successfully", 201, student);
             return Content(response, "application/json");
         }
 
@@ -135,7 +135,7 @@ namespace JWT_API.Controllers
                 data.Phone=Obj.Phone;
                 _db.Student.Update(data);
                 _db.SaveChanges();
-                response = _logging.Success("Student Updated Successfully", 200, data);
+                response = _logging.Success("Profile Updated Successfully", 200, data);
                 return Content(response, "application/json");
             }
             response = _logging.Failure("Not found", 404, null);

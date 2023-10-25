@@ -164,5 +164,24 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
 
+        [HttpGet("dropdown")]
+      
+        public ActionResult<IEnumerable<BookDto>> Getdropdown()
+        {
+            //using raw query
+            var books = _db.Bookdto
+                .FromSqlRaw("SELECT Book.BookId, Book.Title, Book.BookAuthId, Book.BookCatId, Book.Isbn, Book.ActualQuantity, Book.AvailableQuantity, Book.Price, Book.Status, " +
+                            "Category.CatId, Category.CatName, " +
+                            "Author.AuthId, Author.AuthName " +
+                            "FROM Book " +
+                            "JOIN Category ON Book.BookCatId = Category.CatId " +
+                            "JOIN Author ON Book.BookAuthId = Author.AuthId " +
+                            "WHERE Book.Status = 1")
+                            .ToList();
+            //using stored procedure
+            //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
+            var response = _logging.Success("Books Fetched Successfully", 200, books);
+            return Content(response, "application/json");
+        }
     }
 }

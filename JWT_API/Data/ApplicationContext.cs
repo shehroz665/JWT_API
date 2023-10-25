@@ -23,5 +23,7 @@ namespace JWT_API.Data
 
         public DbSet<Transactions> Transaction { get; set; }
 
+        public DbSet<TransactionsDto> TransactionDto { get; set; }
+
     }
 }

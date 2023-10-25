@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace JWT_API.Models
 {
-    public class Transactions
+    public class TransactionsDto
     {
+
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int TransID { get; set; }
@@ -26,5 +27,9 @@ namespace JWT_API.Models
         public int Status { get; set; }
 
         public int UserId { get; set; }
+
+        public string Title { get; set; }
+
+        public string Email { get; set; }
     }
 }
