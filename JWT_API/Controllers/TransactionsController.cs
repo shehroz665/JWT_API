@@ -70,7 +70,7 @@ namespace JWT_API.Controllers
                     "ON [Transaction].UserId = [User].Id";
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm";
+                sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm ";
                 var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
                 var datas = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam).ToList();
                 var responses = _logging.Success("Transaction Fetched Successfully", 200, datas);
