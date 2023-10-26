@@ -50,12 +50,21 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public ActionResult<Authors> GetAuthors()
+       [Authorize]
+        public ActionResult<Authors> GetAuthors(int from=1,int to=10)
         {
             var response = " ";
-            var authorData = _db.Author.Where(x=>x.Status==1 | x.Status==0).ToList();
-            response = _logging.Success("Authors Fetched Successfully", 200, authorData);
+            var count = _db.Author.Where(x => x.Status==1 | x.Status==0).Count();
+            var authorData = _db.Author.Where(x=>x.Status==1 | x.Status==0)
+                .Skip(from-1)
+                .Take(to)
+                .ToList();
+            var obj = new
+            {
+                data=authorData,
+                count=count,
+            };
+            response = _logging.Success("Authors Fetched Successfully", 200,obj);
             return Content(response, "application/json");
         }
 
