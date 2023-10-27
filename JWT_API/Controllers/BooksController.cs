@@ -22,7 +22,7 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpGet]
-    
+        [Authorize]
         public ActionResult<IEnumerable<BookDto>> getBooks(int from=1,int to=10)
         {
             //using raw query
@@ -35,8 +35,8 @@ namespace JWT_API.Controllers
                             "JOIN Category ON Book.BookCatId = Category.CatId " +
                             "JOIN Author ON Book.BookAuthId = Author.AuthId " +
                             "WHERE Book.Status IN (0, 1)";
+            var count = _db.Bookdto.FromSqlRaw(sqlQuery).Count();
             sqlQuery+="ORDER BY Book.BookId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
-            var count = _db.Bookdto.FromSqlRaw(sqlQuery, fromParam, toParam).Count();
             var books = _db.Bookdto.FromSqlRaw(sqlQuery,fromParam,toParam).ToList();
             //using stored procedure
             //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
@@ -73,7 +73,7 @@ namespace JWT_API.Controllers
 
         }
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Policy = "Admin")]
         public ActionResult<Books> getBook(int id)
         {
             var response = " ";
@@ -174,7 +174,7 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet("dropdown")]
-      
+        [Authorize]
         public ActionResult<IEnumerable<BookDto>> Getdropdown()
         {
             //using raw query
