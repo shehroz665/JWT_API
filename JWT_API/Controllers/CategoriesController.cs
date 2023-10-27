@@ -48,11 +48,20 @@ namespace JWT_API.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Admin")]
-        public ActionResult<Categories> GetCategories()
+        public ActionResult<Categories> GetCategories(int from=1,int to=10)
         {
             var response = " ";
-            var categoryData = _db.Category.Where(x => x.Status==1 |x.Status==0).ToList();
-            response = _logging.Success("Categories Fetched Successfully", 200, categoryData);
+            var count = _db.Category.Where(x => x.Status==1 |x.Status==0).Count();
+            var categoryData = _db.Category.Where(x => x.Status==1 |x.Status==0)
+                .Skip(from-1)
+                .Take(to)
+                .ToList();
+            var data = new
+            {
+                data = categoryData,
+                count = count
+            };
+            response = _logging.Success("Categories Fetched Successfully", 200, data);
             return Content(response, "application/json");
         }
 
