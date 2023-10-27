@@ -58,11 +58,13 @@ namespace JWT_API.Controllers
             return Content(response, "application/json");
         }
         [HttpGet]
-        [Authorize]
-        public ActionResult<TransactionsDto> GetAll(string searchTerm = "",int from=1,int to=10)
+   
+        public ActionResult<TransactionsDto> GetAll(string searchTerm = "",int from=1,int to=10,int status=0)
         {
             var fromParam = new SqlParameter("fromParam", from-1);
             var toParam= new SqlParameter("to", to);
+            var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
+            var statusParam = new SqlParameter("statusParam", status);
             var sqlQuery = "SELECT [Book].Title, [User].Email, [Transaction].TransBookId, [Transaction].TransID, [Transaction].TransStuId, [Transaction].BorrowedDate, [Transaction].DueDate, [Transaction].ReturnedDate, " +
                     "[Transaction].Status, [Transaction].UserId " +
                     "FROM [Book] " +
@@ -73,9 +75,8 @@ namespace JWT_API.Controllers
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 
-                sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm ";
-                var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
-                var count = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam).Count();
+                sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm";
+               var count = _db.TransactionDto.FromSqlRaw(sqlQuery,searchParam).Count();
                 sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @to ROWS ONLY";
                 var data = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam,fromParam,toParam).ToList();
                 var res = new
@@ -88,32 +89,50 @@ namespace JWT_API.Controllers
             }
             else
             {
-                var count= _db.TransactionDto.FromSqlRaw(sqlQuery).Count();
-                sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @to ROWS ONLY";
-                var data = _db.TransactionDto.FromSqlRaw(sqlQuery,fromParam, toParam).ToList();
-                var res = new
+                
+                if (status!=0)
                 {
-                    Data = data,
-                    count = count
-                };
-                var response = _logging.Success("Transaction Fetched Successfully", 200, res);
-                return Content(response, "application/json");
+                    sqlQuery += " WHERE [Transaction].Status = @statusParam ";
+                    var count = _db.TransactionDto.FromSqlRaw(sqlQuery, statusParam).Count();
+                    sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @to ROWS ONLY";
+                    var data = _db.TransactionDto.FromSqlRaw(sqlQuery, fromParam, toParam,statusParam).ToList();
+                    var res = new
+                    {
+                        Data = data,
+                        count = count
+                    };
+                    var response = _logging.Success("Transaction Fetched Successfully", 200, res);
+                    return Content(response, "application/json");
+                }
+                else
+                {
+                    var count = _db.TransactionDto.FromSqlRaw(sqlQuery).Count();
+                    sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @to ROWS ONLY";
+                    var data = _db.TransactionDto.FromSqlRaw(sqlQuery, fromParam, toParam).ToList();
+                    var res = new
+                    {
+                        Data = data,
+                        count = count
+                    };
+                    var response = _logging.Success("Transaction Fetched Successfully", 200, res);
+                    return Content(response, "application/json");
+                }
             }
 
         }
         [HttpGet("{id}")]
 
 
-        public ActionResult<Transactions> GetById(int id,string searchTerm="",int from = 1, int to = 10)
+        public ActionResult<Transactions> GetById(int id,string searchTerm="",int from = 1, int to = 10,int status=0)
         {
             //this api is for student,id=UserId
             var response = " ";
-            
             var count = 0;
             var UserId = new SqlParameter("UserId", id);
             var fromParam = new SqlParameter("fromParam", from-1);
             var toParam= new SqlParameter("toParam", to);
             var SearchTerm = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
+            var statusParam = new SqlParameter("statusParam", status);
             if (id==0)
             {
                 response = _logging.Failure("Bad Request", 400, null);
@@ -149,21 +168,45 @@ namespace JWT_API.Controllers
             }
             else
             {
-                count = _db.Transaction.FromSqlRaw(sqlQuery, UserId).Count();
-                sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
-                var data = _db.TransactionDto.FromSqlRaw(sqlQuery, UserId, fromParam, toParam).ToList();
-                if (data!=null)
+                if (status!=0)
                 {
-                    var obj = new
+                    
+                    sqlQuery+="AND [Transaction].Status = @statusParam";
+                    sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                    count = _db.Transaction.FromSqlRaw(sqlQuery, UserId, fromParam, toParam, statusParam).Count();
+                    var data = _db.TransactionDto.FromSqlRaw(sqlQuery, UserId, fromParam, toParam,statusParam).ToList();
+                    if (data!=null)
                     {
-                        Data = data,
-                        count = count,
-                    };
-                    response = _logging.Success("Student Transaction Fetched Successfully", 200, obj);
+                        var obj = new
+                        {
+                            Data = data,
+                            count = count,
+                        };
+                        response = _logging.Success("Student Transaction Fetched Successfully", 200, obj);
+                        return Content(response, "application/json");
+                    }
+                    response = _logging.Failure("Not found", 404, null);
                     return Content(response, "application/json");
                 }
-                response = _logging.Failure("Not found", 404, null);
-                return Content(response, "application/json");
+                else
+                {
+                    count = _db.Transaction.FromSqlRaw(sqlQuery, UserId).Count();
+                    sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                    var data = _db.TransactionDto.FromSqlRaw(sqlQuery, UserId, fromParam, toParam).ToList();
+                    if (data!=null)
+                    {
+                        var obj = new
+                        {
+                            Data = data,
+                            count = count,
+                        };
+                        response = _logging.Success("Student Transaction Fetched Successfully", 200, obj);
+                        return Content(response, "application/json");
+                    }
+                    response = _logging.Failure("Not found", 404, null);
+                    return Content(response, "application/json");
+                }
+
             }
         }
 
