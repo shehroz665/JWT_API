@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Reflection.Metadata;
 using System.Transactions;
 
 namespace JWT_API.Controllers
@@ -71,9 +72,10 @@ namespace JWT_API.Controllers
                     "ON [Transaction].UserId = [User].Id";
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var count = _db.TransactionDto.FromSqlRaw(sqlQuery).Count();
+                
                 sqlQuery += " WHERE [Book].Title LIKE @SearchTerm OR [User].Email LIKE @SearchTerm ";
                 var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
+                var count = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam).Count();
                 sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @to ROWS ONLY";
                 var data = _db.TransactionDto.FromSqlRaw(sqlQuery, searchParam,fromParam,toParam).ToList();
                 var res = new
@@ -100,17 +102,18 @@ namespace JWT_API.Controllers
 
         }
         [HttpGet("{id}")]
-        [Authorize]
 
-        public ActionResult<Transactions> GetById(int id, [FromQuery] string searchTerm="")
+
+        public ActionResult<Transactions> GetById(int id,string searchTerm="",int from = 1, int to = 10)
         {
             //this api is for student,id=UserId
             var response = " ";
-            var searchQuery = "%" + searchTerm + "%";
-            var paramters = new List<SqlParameter>
-            {
-                    new SqlParameter("@UserId",id)
-            };
+            
+            var count = 0;
+            var UserId = new SqlParameter("UserId", id);
+            var fromParam = new SqlParameter("fromParam", from-1);
+            var toParam= new SqlParameter("toParam", to);
+            var SearchTerm = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
             if (id==0)
             {
                 response = _logging.Failure("Bad Request", 400, null);
@@ -127,17 +130,41 @@ namespace JWT_API.Controllers
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                sqlQuery+=" AND ([User].Email LIKE @SearchTerm OR [Book].Title LIKE @SearchTerm) ";
-                paramters.Add(new SqlParameter("@SearchTerm", searchQuery));
-            }  
-            var data = _db.TransactionDto.FromSqlRaw(sqlQuery,paramters.ToArray()).ToList();
-            if (data!=null)
-            {
-                response = _logging.Success("Student Transaction Fetched Successfully", 200, data);
+                sqlQuery += " AND ([User].Email LIKE @SearchTerm OR [Book].Title LIKE @SearchTerm) ";
+                count = _db.Transaction.FromSqlRaw(sqlQuery, UserId, SearchTerm).Count();
+                sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                var data = _db.TransactionDto.FromSqlRaw(sqlQuery, UserId, SearchTerm, fromParam, toParam).ToList();
+                if (data!=null)
+                {
+                    var obj = new
+                    {
+                        Data = data,
+                        count = count,
+                    };
+                    response = _logging.Success("Student Transaction Fetched Successfully", 200, obj);
+                    return Content(response, "application/json");
+                }
+                response = _logging.Failure("Not found", 404, null);
                 return Content(response, "application/json");
             }
-            response = _logging.Failure("Not found", 404, null);
-            return Content(response, "application/json");
+            else
+            {
+                count = _db.Transaction.FromSqlRaw(sqlQuery, UserId).Count();
+                sqlQuery += $" ORDER BY [Transaction].TransID OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                var data = _db.TransactionDto.FromSqlRaw(sqlQuery, UserId, fromParam, toParam).ToList();
+                if (data!=null)
+                {
+                    var obj = new
+                    {
+                        Data = data,
+                        count = count,
+                    };
+                    response = _logging.Success("Student Transaction Fetched Successfully", 200, obj);
+                    return Content(response, "application/json");
+                }
+                response = _logging.Failure("Not found", 404, null);
+                return Content(response, "application/json");
+            }
         }
 
         [HttpPut("update/{id}")]
