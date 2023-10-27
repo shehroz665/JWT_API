@@ -4,6 +4,7 @@ using JWT_API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -21,22 +22,30 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpGet]
-        [Authorize]
-        public ActionResult<IEnumerable<BookDto>> getBooks()
+    
+        public ActionResult<IEnumerable<BookDto>> getBooks(int from=1,int to=10)
         {
             //using raw query
-            var books = _db.Bookdto
-                .FromSqlRaw("SELECT Book.BookId, Book.Title, Book.BookAuthId, Book.BookCatId, Book.Isbn, Book.ActualQuantity, Book.AvailableQuantity, Book.Price, Book.Status, " +
+            var fromParam = new SqlParameter("fromParam", from-1);
+            var toParam = new SqlParameter("toParam", to);
+            var sqlQuery = "SELECT Book.BookId, Book.Title, Book.BookAuthId, Book.BookCatId, Book.Isbn, Book.ActualQuantity, Book.AvailableQuantity, Book.Price, Book.Status, " +
                             "Category.CatId, Category.CatName, " +
                             "Author.AuthId, Author.AuthName " +
                             "FROM Book " +
                             "JOIN Category ON Book.BookCatId = Category.CatId " +
                             "JOIN Author ON Book.BookAuthId = Author.AuthId " +
-                            "WHERE Book.Status IN (0, 1)")
-                            .ToList();
+                            "WHERE Book.Status IN (0, 1)";
+            sqlQuery+="ORDER BY Book.BookId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+            var count = _db.Bookdto.FromSqlRaw(sqlQuery, fromParam, toParam).Count();
+            var books = _db.Bookdto.FromSqlRaw(sqlQuery,fromParam,toParam).ToList();
             //using stored procedure
             //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
-            var response = _logging.Success("Books Fetched Successfully", 200, books);
+            var data = new
+            {
+                data = books,
+                count = count,
+            };
+            var response = _logging.Success("Books Fetched Successfully", 200, data);
             return Content(response, "application/json");
         }
 
