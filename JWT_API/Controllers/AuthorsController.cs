@@ -5,6 +5,10 @@ using JWT_API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Nodes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace JWT_API.Controllers
 {
@@ -50,30 +54,63 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public ActionResult<Authors> GetAuthors(int from=1,int to=10,string searchTerm="")
+
+        public ActionResult<AuthorDto> GetAuthors(int from = 1, int to = 10, string searchTerm = "")
         {
             var response = " ";
-            var query = _db.Author.Where(x => x.Status==1 || x.Status==0);
+                var fromParam = new SqlParameter("fromParam", from - 1);
+                var toParam = new SqlParameter("toParam", to);
+                var searchParam = new SqlParameter("SearchTerm", "%" + searchTerm + "%");
+            var sqlQuery = "SELECT [Author].AuthId, [Author].AuthName, [Author].Status, "+
+                                "ISNULL(STRING_AGG([Book].Title, ', '), '') AS Titles " +
+                                "FROM [Author] " +
+                                "LEFT JOIN [Book] ON [Author].AuthId = [Book].BookAuthId " +
+                                "GROUP BY [Author].AuthId, [Author].AuthName, [Author].Status ";
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.AsEnumerable()
-               .Where(x => x.AuthName.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
-               .AsQueryable();
-            }
-            var count = query.Count();
-            var authorData =query
-                .Skip(from-1)
-                .Take(to)
-                .ToList();
+                sqlQuery += "HAVING [Author].AuthName LIKE @SearchTerm ";
+                var count = _db.AuthorDto.FromSqlRaw(sqlQuery, searchParam).Count();
+                sqlQuery +="ORDER BY [Author].AuthId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY";
+                var authorData = _db.AuthorDto.FromSqlRaw(sqlQuery, searchParam, fromParam, toParam).ToList();
 
-            var obj = new
+                if (authorData != null)
+                {
+   
+                    var obj = new
+                    {
+                        data = authorData,
+                        count = count,
+                    };
+                    response = _logging.Success("Authors Fetched Successfully", 200, obj);
+                    return Content(response, "application/json");
+                }
+                else
+                {
+                    response = _logging.Failure("Not found", 404, null);
+                    return Content(response, "application/json");
+                }
+            }
+            else
             {
-                data=authorData,
-                count=count,
-            };
-            response = _logging.Success("Authors Fetched Successfully", 200,obj);
-            return Content(response, "application/json");
+                var count = _db.AuthorDto.FromSqlRaw(sqlQuery).Count();
+                sqlQuery += $"ORDER BY [Author].AuthId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                var authorData = _db.AuthorDto.FromSqlRaw(sqlQuery, fromParam, toParam).ToList();
+                if (authorData != null)
+                {
+                    var obj = new
+                    {
+                        data = authorData,
+                        count = count,
+                    };
+                    response = _logging.Success("Authors Fetched Successfully", 200, obj);
+                    return Content(response, "application/json");
+                }
+                else
+                {
+                    response = _logging.Failure("Not found", 404, null);
+                    return Content(response, "application/json");
+                }
+            }
         }
 
         [HttpGet("{id}")]
