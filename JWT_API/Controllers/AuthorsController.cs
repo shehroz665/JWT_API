@@ -50,15 +50,23 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-       [Authorize]
-        public ActionResult<Authors> GetAuthors(int from=1,int to=10)
+        [Authorize]
+        public ActionResult<Authors> GetAuthors(int from=1,int to=10,string searchTerm="")
         {
             var response = " ";
-            var count = _db.Author.Where(x => x.Status==1 | x.Status==0).Count();
-            var authorData = _db.Author.Where(x=>x.Status==1 | x.Status==0)
+            var query = _db.Author.Where(x => x.Status==1 || x.Status==0);
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.AsEnumerable()
+               .Where(x => x.AuthName.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+               .AsQueryable();
+            }
+            var count = query.Count();
+            var authorData =query
                 .Skip(from-1)
                 .Take(to)
                 .ToList();
+
             var obj = new
             {
                 data=authorData,
