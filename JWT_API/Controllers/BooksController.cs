@@ -22,12 +22,13 @@ namespace JWT_API.Controllers
             _logging=logging;
         }
         [HttpGet]
-        [Authorize]
-        public ActionResult<IEnumerable<BookDto>> getBooks(int from=1,int to=10)
+       
+        public ActionResult<IEnumerable<BookDto>> getBooks(int from=1,int to=10,string searchTerm="")
         {
             //using raw query
             var fromParam = new SqlParameter("fromParam", from-1);
             var toParam = new SqlParameter("toParam", to);
+            var searchParam = new SqlParameter("searchTerm", "%" +searchTerm+"%");
             var sqlQuery = "SELECT Book.BookId, Book.Title, Book.BookAuthId, Book.BookCatId, Book.Isbn, Book.ActualQuantity, Book.AvailableQuantity, Book.Price, Book.Status, " +
                             "Category.CatId, Category.CatName, " +
                             "Author.AuthId, Author.AuthName " +
@@ -35,18 +36,38 @@ namespace JWT_API.Controllers
                             "JOIN Category ON Book.BookCatId = Category.CatId " +
                             "JOIN Author ON Book.BookAuthId = Author.AuthId " +
                             "WHERE Book.Status IN (0, 1)";
-            var count = _db.Bookdto.FromSqlRaw(sqlQuery).Count();
-            sqlQuery+="ORDER BY Book.BookId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
-            var books = _db.Bookdto.FromSqlRaw(sqlQuery,fromParam,toParam).ToList();
-            //using stored procedure
-            //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
-            var data = new
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                data = books,
-                count = count,
-            };
-            var response = _logging.Success("Books Fetched Successfully", 200, data);
-            return Content(response, "application/json");
+                sqlQuery+="AND (Book.Title LIKE @searchTerm OR Category.CatName LIKE @searchTerm OR Author.AuthName LIKE @searchTerm OR Book.Isbn LIKE @searchTerm) ";
+                var count = _db.Bookdto.FromSqlRaw(sqlQuery,searchParam).Count();
+                sqlQuery+="ORDER BY Book.BookId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                var books = _db.Bookdto.FromSqlRaw(sqlQuery, fromParam, toParam,searchParam).ToList();
+                //using stored procedure
+                //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
+                var data = new
+                {
+                    data = books,
+                    count = count,
+                };
+                var response = _logging.Success("Books Fetched Successfully", 200, data);
+                return Content(response, "application/json");
+            }
+            else
+            {
+               var count = _db.Bookdto.FromSqlRaw(sqlQuery).Count();
+                sqlQuery+="ORDER BY Book.BookId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY ";
+                var books = _db.Bookdto.FromSqlRaw(sqlQuery, fromParam, toParam).ToList();
+                //using stored procedure
+                //var books = _db.Bookdto.FromSqlRaw("exec getBooks").ToList();
+                var data = new
+                {
+                    data = books,
+                    count = count,
+                };
+                var response = _logging.Success("Books Fetched Successfully", 200, data);
+                return Content(response, "application/json");
+            }
+
         }
 
         [HttpPost]
