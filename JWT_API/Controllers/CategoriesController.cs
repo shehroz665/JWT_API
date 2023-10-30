@@ -48,11 +48,18 @@ namespace JWT_API.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Admin")]
-        public ActionResult<Categories> GetCategories(int from=1,int to=10)
+        public ActionResult<Categories> GetCategories(int from=1,int to=10, string searchTerm = "")
         {
             var response = " ";
-            var count = _db.Category.Where(x => x.Status==1 |x.Status==0).Count();
-            var categoryData = _db.Category.Where(x => x.Status==1 |x.Status==0)
+            var query = _db.Category.Where(x => x.Status==1 |x.Status==0);
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query=query.AsEnumerable().
+                    Where(x => x.CatName.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase)>=0).AsQueryable();
+
+            }
+            var count = query.Count();
+            var categoryData =query
                 .Skip(from-1)
                 .Take(to)
                 .ToList();
