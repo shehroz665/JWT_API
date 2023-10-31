@@ -4,6 +4,8 @@ using JWT_API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace JWT_API.Controllers
 {
@@ -47,29 +49,36 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "Admin")]
-        public ActionResult<Categories> GetCategories(int from=1,int to=10, string searchTerm = "")
+        
+        public ActionResult<CategoriesDto> GetCategories(int from=1,int to=10, string searchTerm = "")
         {
             var response = " ";
-            var query = _db.Category.Where(x => x.Status==1 |x.Status==0);
-            if (!string.IsNullOrEmpty(searchTerm))
+            var fromParam = new SqlParameter("fromParam", from - 1);
+            var toParam = new SqlParameter("toParam", to);
+            var searchParam = new SqlParameter("searchParam", "%" + searchTerm + "%");
+            var data = _db.CategoryDto.FromSqlRaw("EXEC SearchCategoriesWithBooks @searchParam, @fromParam, @toParam", searchParam,fromParam,toParam).ToList();
+            var count = data.Count();
+            var DbCount=_db.Category.Where(x=>x.Status== 0 | x.Status==1).Count();
+            if (data!=null)
             {
-                query=query.AsEnumerable().
-                    Where(x => x.CatName.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase)>=0).AsQueryable();
-
+                if (count>9)
+                {
+                    count=DbCount;
+                }
+                var obj = new
+                {
+                    data = data,
+                    count = count,
+                };
+                response = _logging.Success("Category Fetched Successfully", 200, obj);
+                return Content(response, "application/json");
             }
-            var count = query.Count();
-            var categoryData =query
-                .Skip(from-1)
-                .Take(to)
-                .ToList();
-            var data = new
+            else
             {
-                data = categoryData,
-                count = count
-            };
-            response = _logging.Success("Categories Fetched Successfully", 200, data);
-            return Content(response, "application/json");
+                response = _logging.Failure("Not found", 404, null);
+                return Content(response, "application/json");
+            }
+
         }
 
         [HttpGet("{id}")]
