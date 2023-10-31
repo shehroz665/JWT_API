@@ -49,28 +49,50 @@ namespace JWT_API.Controllers
         }
 
         [HttpGet]
-        
-        public ActionResult<CategoriesDto> GetCategories(int from=1,int to=10, string searchTerm = "")
+
+        public ActionResult<CategoriesDto> GetCategories(int from = 1, int to = 10, string searchTerm = "")
         {
             var response = " ";
-            var fromParam = new SqlParameter("fromParam", from - 1);
-            var toParam = new SqlParameter("toParam", to);
-            var searchParam = new SqlParameter("searchParam", "%" + searchTerm + "%");
-            var data = _db.CategoryDto.FromSqlRaw("EXEC SearchCategoriesWithBooks @searchParam, @fromParam, @toParam", searchParam,fromParam,toParam).ToList();
-            var count = data.Count();
-            var DbCount=_db.Category.Where(x=>x.Status== 0 | x.Status==1).Count();
-            if (data!=null)
+            var query = _db.Category
+                .Where(c => EF.Functions.Like(c.CatName, "%" + searchTerm + "%"))
+                .OrderBy(c => c.CatId)
+                .Select(c => new CategoriesDto
+                {
+                    CatId = c.CatId,
+                    CatName = c.CatName,
+                    Status = c.Status,
+                    Books = _db.Book
+                        .Where(b => b.BookCatId == c.CatId)
+                        .Select(b => new BookDto
+                        {
+                            BookId = b.BookId,
+                            Title = b.Title,
+                            BookCatId=b.BookCatId,
+                            BookAuthId=b.BookAuthId,
+                            Isbn=b.Isbn,
+                            ActualQuantity=b.ActualQuantity,
+                            AvailableQuantity=b.AvailableQuantity,
+                            Price=b.Price,
+                            Status=b.Status,
+                            CatId=b.BookCatId,
+                            CatName=c.CatName,
+                            AuthId=b.BookAuthId,
+                            AuthName=_db.Author.FirstOrDefault(x=>x.AuthId==b.BookAuthId).AuthName,
+                        })
+                        .ToList()
+                });
+            var count = query.Count();
+            var result = query.Skip(from-1)
+                .Take(to)
+                .ToList();
+            if (result!=null)
             {
-                if (count>9)
+                var res = new
                 {
-                    count=DbCount;
-                }
-                var obj = new
-                {
-                    data = data,
-                    count = count,
+                    data = result,
+                    count = count
                 };
-                response = _logging.Success("Category Fetched Successfully", 200, obj);
+                response = _logging.Success("Category Fetched Successfully", 200, res);
                 return Content(response, "application/json");
             }
             else

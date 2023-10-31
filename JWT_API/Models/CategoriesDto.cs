@@ -14,6 +14,11 @@ namespace JWT_API.Models
         [Required]
         public int Status { get; set; }
 
-        public string Titles { get; set; }
+        public List<BookDto> Books { get; set; }
     }
 }
+
+
+
+
+
