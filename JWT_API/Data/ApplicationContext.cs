@@ -27,7 +27,7 @@ namespace JWT_API.Data
 
         public DbSet<AuthorDto> AuthorDto { get; set; }
 
-        public DbSet<CategoriesDto> CategoryDto { get; set; }
+  
 
     }
 }
