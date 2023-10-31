@@ -54,7 +54,7 @@ namespace JWT_API.Controllers
         {
             var response = " ";
             var query = _db.Category
-                .Where(c => EF.Functions.Like(c.CatName, "%" + searchTerm + "%"))
+                .Where(c => EF.Functions.Like(c.CatName, "%" + searchTerm + "%") && (c.Status==0 || c.Status==1))
                 .OrderBy(c => c.CatId)
                 .Select(c => new CategoriesDto
                 {

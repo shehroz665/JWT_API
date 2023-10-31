@@ -65,6 +65,7 @@ namespace JWT_API.Controllers
                                 "ISNULL(STRING_AGG([Book].Title, ', '), '') AS Titles " +
                                 "FROM [Author] " +
                                 "LEFT JOIN [Book] ON [Author].AuthId = [Book].BookAuthId " +
+                                "WHERE [Author].Status IN (0,1) " +
                                 "GROUP BY [Author].AuthId, [Author].AuthName, [Author].Status ";
             if (!string.IsNullOrEmpty(searchTerm))
             {
