@@ -74,6 +74,7 @@ namespace JWT_API.Controllers
                 sqlQuery +="ORDER BY [Author].AuthId OFFSET @fromParam ROWS FETCH NEXT @toParam ROWS ONLY";
                 var authorData = _db.AuthorDto.FromSqlRaw(sqlQuery, searchParam, fromParam, toParam).ToList();
 
+
                 if (authorData != null)
                 {
    
