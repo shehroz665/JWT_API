@@ -1,4 +1,5 @@
-﻿using JWT_API.Data;
+﻿using Azure;
+using JWT_API.Data;
 using JWT_API.Logging;
 using JWT_API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace JWT_API.Controllers
 {
@@ -101,6 +103,84 @@ namespace JWT_API.Controllers
                 return Content(response, "application/json");
             }
 
+        }
+        [HttpGet("getAllCat")]
+        public IActionResult GetAllCat(int from = 1, int to = 10, string searchTerm = "")
+        {
+            try
+            {
+                var query = from category in _db.Category
+                            where category.Status != 2 && (string.IsNullOrEmpty(searchTerm) || category.CatName.Contains(searchTerm))
+                            select category;
+                var result = query.Skip(from - 1).Take(to).ToList();
+                var count = query.Count();
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    count = result.Count();
+                }
+                var res = new
+                {
+                    data = result,
+                    count = count
+                };
+                var response = _logging.Success("Category Fetched Successfully", 200, res);
+                return Content(response, "application/json");
+            }
+            catch (Exception ex)
+            {
+                var response = _logging.Failure(ex.Message, 500, null);
+                return Content(response, "application/json");
+            }
+
+        }
+        [HttpGet("getAllCat/{id}")]
+        public IActionResult GetCat(int id)
+        {
+            try
+            {
+                var response = "";
+                if (id == null || id<=0)
+                {
+                     response = _logging.Failure("Bad Request", 400, null);
+                    return Content(response, "application/json");
+                }
+                var query = from category in _db.Category
+                            where category.CatId == id
+                            join book in _db.Book
+                            on category.CatId equals book.BookCatId into BookData
+                            select new
+                            {
+                                CategoryId = category.CatId,
+                                CategoryName = category.CatName,
+                                Books = BookData.Select(b => new
+                                {
+                                    BookId = b.BookId,
+                                    Title = b.Title,
+                                    BookCatId = b.BookCatId,
+                                    BookAuthId = b.BookAuthId,
+                                    Isbn = b.Isbn,
+                                    ActualQuantity = b.ActualQuantity,
+                                    AvailableQuantity = b.AvailableQuantity,
+                                    Price = b.Price,
+                                    Status = b.Status
+                                })
+                            };
+                var result = query.ToList();
+                var res = new
+                {
+                    data = result,
+
+                };
+                response = _logging.Success("Category Fetched Successfully", 200, result);
+                return Content(response, "application/json");
+            }
+            catch (Exception ex)
+            {
+                var response = _logging.Failure(ex.Message, 500, null);
+                return Content(response, "application/json");
+            }
+
+            
         }
 
         [HttpGet("{id}")]
