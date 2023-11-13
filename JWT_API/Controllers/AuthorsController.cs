@@ -35,7 +35,7 @@ namespace JWT_API.Controllers
                 response = _logging.Failure("Bad Request", 400, null);
                 return Content(response, "application/json");
             }
-            var authorData= _db.Author.FirstOrDefault(x=>x.AuthName == authorsObj.AuthName);
+            var authorData= _db.Author.FirstOrDefault(x=>x.AuthName == authorsObj.AuthName && x.Status!=2);
             if(authorData != null)
             {
                 response = _logging.Failure("Author Already exists", 400, null);

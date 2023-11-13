@@ -30,7 +30,7 @@ namespace JWT_API.Controllers
                 response = _logging.Failure("Bad Request", 400, null);
                 return Content(response, "application/json");
             }
-            var categoryData = _db.Category.FirstOrDefault(x => x.CatName == categoriesObj.CatName);
+            var categoryData = _db.Category.FirstOrDefault(x => x.CatName == categoriesObj.CatName && x.Status != 2);
             if (categoryData != null)
             {
                 response = _logging.Failure("Category Already exists", 400, null);
