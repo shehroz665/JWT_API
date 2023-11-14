@@ -162,7 +162,9 @@ namespace JWT_API.Controllers
                                     ActualQuantity = b.ActualQuantity,
                                     AvailableQuantity = b.AvailableQuantity,
                                     Price = b.Price,
-                                    Status = b.Status
+                                    Status = b.Status,
+                                    BookAuthName = _db.Author.FirstOrDefault(x => x.AuthId == b.BookAuthId).AuthName,
+                                    BookCatName= category.CatName,
                                 })
                             };
                 var result = query.ToList();
@@ -171,7 +173,7 @@ namespace JWT_API.Controllers
                     data = result,
 
                 };
-                response = _logging.Success("Category Fetched Successfully", 200, result);
+                response = _logging.Success("Category Fetched Successfully", 200, res);
                 return Content(response, "application/json");
             }
             catch (Exception ex)
@@ -249,7 +251,7 @@ namespace JWT_API.Controllers
         }
         [HttpPut("changeStatus/{id}")]
         [Authorize(Policy = "Admin")]
-        public ActionResult<Categories> ChangeStatusCategory(int id)
+        public ActionResult<Categories> ChangeStatusCategory(int id, [FromBody] StatusDto statusDto)
         {
             var response = " ";
             if (id==0)
@@ -260,14 +262,10 @@ namespace JWT_API.Controllers
             var categoryData = _db.Category.FirstOrDefault(x => x.CatId==id);
             if (categoryData!=null)
             {
-                if (categoryData.Status==0)
-                {
-                    categoryData.Status=1;
-                }
-                else
-                {
-                    categoryData.Status=0;
-                }
+               
+       
+                    categoryData.Status= statusDto.status;
+       
                 _db.Category.Update(categoryData);
                 _db.SaveChanges();
                 response = _logging.Success("category Status Updated Successfully", 200, categoryData);
