@@ -166,7 +166,7 @@ namespace JWT_API.Controllers
         }
         [HttpPut("changeStatus/{id}")]
         [Authorize(Policy = "Admin")]
-        public ActionResult<Authors> ChangeStatus(int id)
+        public ActionResult<Authors> ChangeStatus(int id, [FromBody] StatusDto statusDto)
         {
             var response = " ";
             if (id==0)
@@ -177,14 +177,7 @@ namespace JWT_API.Controllers
             var data = _db.Book.FirstOrDefault(x => x.BookId==id);
             if (data!=null)
             {
-                if (data.Status==0)
-                {
-                    data.Status=1;
-                }
-                else
-                {
-                    data.Status=0;
-                }
+                data.Status= statusDto.status;
                 _db.Book.Update(data);
                 _db.SaveChanges();
                 response = _logging.Success("Book Status Updated Successfully", 200, data);
