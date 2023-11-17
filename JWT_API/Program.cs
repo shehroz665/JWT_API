@@ -1,5 +1,6 @@
 using JWT_API.Data;
 using JWT_API.Logging;
+using JWT_API.Repository_Pattern.Category;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -9,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICategory, CategoryRepository>();
 builder.Services.AddSingleton<LoggingInterface, Logging>();
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
